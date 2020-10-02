@@ -2,7 +2,7 @@ import User from 'models/User';
 
 const auth_signup = (req, res) => {
     const user = new User({
-        username: 'Janek',
+        username: 'Janxek',
         password: 'Hello',
         isAdmin: false,
     });
