@@ -1,13 +1,20 @@
 import { Schema, model } from 'mongoose';
+import validator from 'validator';
 
-const userSchema = new Schema(
-    {
-        username: String,
-        password: String,
-        isAdmin: Boolean,
+const userSchema = new Schema({
+    email: {
+        type: String,
+        required: [true, 'Please enter an email'],
+        unique: true,
+        lowercase: true,
+        validate: [validator.isEmail, 'Please enter a valid email'],
     },
-    { timestamps: true },
-);
+    password: {
+        type: String,
+        required: [true, 'Please enter an password'],
+        minlength: [12, 'Password must be at least 6 characters'],
+    },
+});
 
 const User = model('User', userSchema);
 

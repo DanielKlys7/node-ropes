@@ -1,15 +1,26 @@
 import User from 'models/User';
 
-const auth_signup = (req, res) => {
-    const user = new User({
-        username: 'Janxek',
-        password: 'Hello',
-        isAdmin: false,
-    });
+const handleErrors = err => {
+    console.log(err.message, err.code);
+    let error = { email: '', password: '' };
 
-    user.save().then(result => res.send(result));
+    if (err.message.includes('User validation failed')) {
+        console.log(err);
+    }
+};
+
+const signupPost = async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        const user = await User.create({ email, password });
+        res.status(201).json(user);
+    } catch (err) {
+        const errors = handleErrors(err);
+        res.status(400).json(errors);
+    }
 };
 
 export default {
-    auth_signup,
+    signupPost,
 };
