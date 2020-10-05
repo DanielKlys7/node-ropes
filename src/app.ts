@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
 
-import authRouter from './routes/authRoutes';
+import authRouter from './modules/auth/routes/authRoutes';
 
 dotenv.config();
 const app = express();
@@ -13,6 +13,7 @@ const mongoDBConnectionURI = `mongodb+srv://${process.env.MONGODB_USERNAME}:${pr
 mongoose.connect(mongoDBConnectionURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    useCreateIndex: true,
 });
 
 const db = mongoose.connection;
