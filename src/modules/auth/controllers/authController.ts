@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import User from '../models/User';
 import { cookieSettings, jwtSettings } from '../config/authConfig';
 
+console.log(User);
+
 dotenv.config();
 
 const signupPost = async (req, res) => {
