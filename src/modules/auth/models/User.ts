@@ -1,8 +1,17 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, Document, Model } from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcrypt';
 
-import { UserModel } from '../types/User';
+interface User {
+    email: string;
+    password: string;
+}
+
+interface UserDocument extends User, Document {}
+
+interface UserModel extends Model<UserDocument> {
+    login(email: string, password: string): User;
+}
 
 const userSchema = new Schema({
     email: {
@@ -20,13 +29,23 @@ const userSchema = new Schema({
     },
 });
 
-userSchema.pre<UserModel>('save', async function (next) {
+userSchema.pre<UserDocument>('save', async function (next) {
     const salt = await bcrypt.genSalt();
     this.password = await bcrypt.hash(this.password, salt);
 
     next();
 });
 
-const User = model('User', userSchema);
+userSchema.statics.login = async function (email: string, password: string) {
+    const user = await this.findOne({ email });
+    if (!user) throw Error('Account with given email does not exist');
+
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    if (!isPasswordCorrect) throw Error('Password does not match');
+
+    return user;
+};
+
+const User = model<UserDocument, UserModel>('User', userSchema);
 
 export default User;

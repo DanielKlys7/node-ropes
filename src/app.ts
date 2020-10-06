@@ -2,6 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 
 import authRouter from './modules/auth/routes/authRoutes';
 
@@ -26,5 +27,6 @@ db.once('open', () => {
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(morgan('tiny'));
+app.use(cookieParser());
 
 app.use('/auth', authRouter);
