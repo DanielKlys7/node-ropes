@@ -2,8 +2,10 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 
-import authRouter from './routes/authRoutes';
+import requireAuth from './modules/auth/middlewares/authMiddleware';
+import authRouter from './modules/auth/routes/authRoutes';
 
 dotenv.config();
 const app = express();
@@ -13,6 +15,7 @@ const mongoDBConnectionURI = `mongodb+srv://${process.env.MONGODB_USERNAME}:${pr
 mongoose.connect(mongoDBConnectionURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    useCreateIndex: true,
 });
 
 const db = mongoose.connection;
@@ -25,5 +28,8 @@ db.once('open', () => {
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(morgan('tiny'));
+app.use(cookieParser());
 
 app.use('/auth', authRouter);
+
+app.use(requireAuth);
