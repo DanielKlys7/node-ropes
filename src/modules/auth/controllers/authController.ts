@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 
 import User from '../models/User';
+import Error from '../models/Error';
 import { cookieSettings, jwtSettings } from '../config/authConfig';
 import { alreadyRegistered, wrongCredentials } from '../config/errorMessages';
 
@@ -36,26 +37,30 @@ const loginPost = async (req, res) => {
     }
 };
 
-const createToken = id => jwt.sign({ id }, process.env.JWT_SECRET, jwtSettings);
+const createToken = (id: string) => jwt.sign({ id }, process.env.JWT_SECRET, jwtSettings);
 
-const handleErrors = <T extends { message: string; errors: object; code: number }>(err: T) => {
+const handleErrors = (err: Error) => {
     if (err.code === 11000)
         return {
-            email: alreadyRegistered,
+            errors: { email: alreadyRegistered },
         };
 
     if (err.message === wrongCredentials)
         return {
-            email: err.message,
-            password: err.message,
+            errors: { email: err.message, password: err.message },
         };
 
     if (err.message.includes('User validation failed'))
-        return Object.values(err.errors).reduce((total: {}, { properties: { path, message } }) => {
-            total.hasOwnProperty(path) ? (total[path] = [total[path], message]) : (total[path] = message);
+        return Object.values(err.errors).reduce(
+            (total: { errors? }, { properties: { path, message } }) => {
+                total.errors.hasOwnProperty(path)
+                    ? (total.errors[path] = [total.errors[path], message])
+                    : (total.errors[path] = message);
 
-            return total;
-        }, {});
+                return total;
+            },
+            { errors: {} },
+        );
 
     return err;
 };

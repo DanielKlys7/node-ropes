@@ -10,7 +10,7 @@ const requireAuth = (req, res, next) => {
     const token = req.headers.authorization || req.headers['x-access-token'];
 
     if (!token) {
-        res.status(401).json({ error: tokenNotProvided });
+        res.status(401).json({ errors: { token: tokenNotProvided } });
         throw new Error(tokenNotProvided);
     }
 
