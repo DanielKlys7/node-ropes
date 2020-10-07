@@ -3,8 +3,7 @@ import dotenv from 'dotenv';
 
 import User from '../models/User';
 import { cookieSettings, jwtSettings } from '../config/authConfig';
-
-console.log(User);
+import { alreadyRegistered, wrongCredentials } from '../config/errorMessages';
 
 dotenv.config();
 
@@ -15,7 +14,7 @@ const signupPost = async (req, res) => {
         const user = await User.create({ email, password });
         const token = createToken(user._id);
         res.cookie('jwt', token, cookieSettings);
-        res.status(201).json(user);
+        res.status(201).json(token);
     } catch (err) {
         const errors = handleErrors(err);
         res.status(400).json(errors);
@@ -27,9 +26,13 @@ const loginPost = async (req, res) => {
 
     try {
         const user = await User.login(email, password);
-        res.status(200).json(user);
+        const token = createToken(user._id);
+        res.cookie('jwt', token, cookieSettings);
+        res.status(200).json({ userID: user._id });
     } catch (err) {
-        res.status(400).json(err);
+        console.log(err);
+        const errors = handleErrors(err);
+        res.status(400).json(errors);
     }
 };
 
@@ -38,7 +41,13 @@ const createToken = id => jwt.sign({ id }, process.env.JWT_SECRET, jwtSettings);
 const handleErrors = <T extends { message: string; errors: object; code: number }>(err: T) => {
     if (err.code === 11000)
         return {
-            email: 'This email is already in registered',
+            email: alreadyRegistered,
+        };
+
+    if (err.message === wrongCredentials)
+        return {
+            email: err.message,
+            password: err.message,
         };
 
     if (err.message.includes('User validation failed'))

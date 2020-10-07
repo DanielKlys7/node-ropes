@@ -2,6 +2,8 @@ import { Schema, model, Document, Model } from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcrypt';
 
+import { wrongCredentials } from '../config/errorMessages';
+
 interface User {
     email: string;
     password: string;
@@ -10,7 +12,7 @@ interface User {
 interface UserDocument extends User, Document {}
 
 interface UserModel extends Model<UserDocument> {
-    login(email: string, password: string): User;
+    login(email: string, password: string): UserDocument;
 }
 
 const userSchema = new Schema({
@@ -38,10 +40,10 @@ userSchema.pre<UserDocument>('save', async function (next) {
 
 userSchema.statics.login = async function (email: string, password: string) {
     const user = await this.findOne({ email });
-    if (!user) throw Error('Account with given email does not exist');
+    if (!user) throw new Error(wrongCredentials);
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    if (!isPasswordCorrect) throw Error('Password does not match');
+    if (!isPasswordCorrect) throw new Error(wrongCredentials);
 
     return user;
 };

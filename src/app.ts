@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 
+import requireAuth from './modules/auth/middlewares/authMiddleware';
 import authRouter from './modules/auth/routes/authRoutes';
 
 dotenv.config();
@@ -30,3 +31,5 @@ app.use(morgan('tiny'));
 app.use(cookieParser());
 
 app.use('/auth', authRouter);
+
+app.use(requireAuth);
