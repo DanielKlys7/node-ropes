@@ -15,7 +15,7 @@ const signupPost = async (req, res) => {
         const user = await User.create({ email, password });
         const token = createToken(user._id);
         res.cookie('jwt', token, cookieSettings);
-        res.status(201).json(token);
+        res.status(201).json({ userID: user._id });
     } catch (err) {
         const errors = handleErrors(err);
         res.status(400).json(errors);
@@ -31,7 +31,6 @@ const loginPost = async (req, res) => {
         res.cookie('jwt', token, cookieSettings);
         res.status(200).json({ userID: user._id });
     } catch (err) {
-        console.log(err);
         const errors = handleErrors(err);
         res.status(400).json(errors);
     }
