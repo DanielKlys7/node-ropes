@@ -6,23 +6,24 @@ import { tokenNotProvided } from '../config/errorMessages';
 dotenv.config();
 
 const requireAuth = (req, res, next) => {
-    const tokenStartWithBearer = (bearerToken: string) => bearerToken.startsWith('Bearer ');
-    const token = req.headers.authorization || req.headers['x-access-token'];
+    const token = req.cookies.jwt;
 
-    if (!token) {
-        res.status(401).json({ error: tokenNotProvided });
-        throw new Error(tokenNotProvided);
+    try {
+        if (!token) {
+            res.status(401).json({ errors: { token: tokenNotProvided } });
+            throw new Error(tokenNotProvided);
+        }
+
+        jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
+            if (err) res.status(401).json({ error: err.message });
+
+            return decodedToken;
+        });
+
+        next();
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
-
-    const tokenToVerify = !tokenStartWithBearer ? token : token.substring(7);
-
-    jwt.verify(tokenToVerify, process.env.JWT_SECRET, (err, decodedToken) => {
-        if (err) res.status(401).json({ error: err.message });
-
-        return decodedToken;
-    });
-
-    next();
 };
 
 export default requireAuth;
