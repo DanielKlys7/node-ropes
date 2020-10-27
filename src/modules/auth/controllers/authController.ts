@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import nodemailer from 'nodemailer';
 
 import User from '../models/User';
 import Error from '../models/Error';
@@ -8,11 +9,19 @@ import { alreadyRegistered, wrongCredentials } from '../config/errorMessages';
 
 dotenv.config();
 
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.GMAIL_EMAIL,
+        pass: process.env.GMAIL_PASSWORD,
+    }
+});
+
 const signupPost = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, first_name, last_name } = req.body;
 
     try {
-        const user = await User.create({ email, password });
+        const user = await User.create({ email, password, first_name, last_name });
         const token = createToken(user._id);
         res.cookie('jwt', token, cookieSettings);
         res.status(201).json({ userID: user._id });
