@@ -31,6 +31,6 @@ app.use(morgan('tiny'));
 app.use(cookieParser());
 
 app.use('/auth', authRouter);
-app.get('/', (req, res) => res.send('xD'))
+app.get('/', (req, res) => res.send('xD'));
 
 app.use(requireAuth);

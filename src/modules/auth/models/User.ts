@@ -1,6 +1,6 @@
 import { Schema, model, Document, Model } from 'mongoose';
 import validator from 'validator';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 import { wrongCredentials, fieldMissing, fieldInvalid, maxLength, minLength } from '../config/errorMessages';
 
