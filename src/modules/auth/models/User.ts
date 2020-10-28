@@ -9,6 +9,7 @@ interface User {
     password: string;
     first_name: string;
     last_name: string;
+    status: string;
 }
 
 interface UserDocument extends User, Document {}
@@ -34,15 +35,19 @@ const userSchema = new Schema({
     first_name: {
         type: String,
         required: [true, fieldMissing('First name')],
-        minlength: [6, minLength('First name', 6)],
-        maxLength: [32, maxLength('First name', 32)]
+        minlength: [2, minLength('First name', 2)],
+        maxLength: [32, maxLength('First name', 32)],
     },
     last_name: {
         type: String,
         required: [true, fieldMissing('Last name')],
-        minlength: [6, minLength('Last name', 6)],
-        maxLength: [32, maxLength('Last name', 32)]
-    }
+        minlength: [2, minLength('Last name', 2)],
+        maxLength: [32, maxLength('Last name', 32)],
+    },
+    status: {
+        type: String,
+        default: 'pending',
+    },
 });
 
 userSchema.pre<UserDocument>('save', async function (next) {
