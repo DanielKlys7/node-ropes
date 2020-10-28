@@ -1,33 +1,66 @@
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import { RequestHandler } from 'express';
 
 import User from '../models/User';
+import Secret from '../models/Secret';
 import Error from '../models/Error';
 import { cookieSettings, jwtSettings } from '../config/authConfig';
 import { alreadyRegistered, wrongCredentials } from '../config/errorMessages';
 
 dotenv.config();
 
-const signupPost = async (req, res) => {
-    const { email, password } = req.body;
+const signupPost: RequestHandler = async (req, res) => {
+    const { email, password, first_name, last_name } = req.body;
 
     try {
-        const user = await User.create({ email, password });
-        const token = createToken(user._id);
-        res.cookie('jwt', token, cookieSettings);
-        res.status(201).json({ userID: user._id });
+        const user = await User.create({ email, password, first_name, last_name, status: undefined });
+        const secret = await Secret.createAndSend(user.email, user._id);
+
+        res.status(201).end();
     } catch (err) {
         const errors = handleErrors(err);
         res.status(400).json(errors);
     }
 };
 
-const loginPost = async (req, res) => {
+const loginPost: RequestHandler = async (req, res) => {
     const { email, password } = req.body;
 
     try {
         const user = await User.login(email, password);
         const token = createToken(user._id);
+
+        res.cookie('jwt', token, cookieSettings);
+        res.status(200).json({ userID: user._id });
+    } catch (err) {
+        const errors = handleErrors(err);
+        res.status(400).json(errors);
+    }
+};
+
+const emailConfirmRequestPost: RequestHandler = async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        const user = await User.findOne({ email });
+        const secret = await Secret.createAndSend(user.email, user._id);
+
+        res.status(200).end();
+    } catch (err) {
+        const errors = handleErrors(err);
+        res.status(400).json(errors);
+    }
+};
+
+const emailConfirmPost: RequestHandler = async (req, res) => {
+    const { userID, code } = req.body;
+
+    try {
+        const secret = await Secret.findOneAndDelete({ code, userID });
+        const user = await User.findByIdAndUpdate(secret.userID, { status: 'confirmed' });
+        const token = createToken(user._id);
+
         res.cookie('jwt', token, cookieSettings);
         res.status(200).json({ userID: user._id });
     } catch (err) {
@@ -67,4 +100,5 @@ const handleErrors = (err: Error) => {
 export default {
     signupPost,
     loginPost,
+    emailConfirmPost,
 };
