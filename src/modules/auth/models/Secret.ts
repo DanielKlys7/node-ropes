@@ -1,7 +1,7 @@
 import { Schema, model, Document, Model } from 'mongoose';
 import randomize from 'randomatic';
 
-import { transporter, verificationEmailCreator } from 'common/mailer';
+import { transporter, verificationEmailCreator } from 'common/services/mailService';
 
 interface Secret {
     userID: string;
@@ -34,7 +34,7 @@ secretSchema.statics.createAndSend = async function (email: string, userID: stri
     const code = randomize('aA0', 16);
     const secret = await this.create({ userID, code });
 
-    await transporter.sendMail(verificationEmailCreator(email, userID, code));
+    await verificationEmailCreator(email, userID, code);
 
     return secret;
 };

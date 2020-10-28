@@ -101,4 +101,5 @@ export default {
     signupPost,
     loginPost,
     emailConfirmPost,
+    emailConfirmRequestPost,
 };
