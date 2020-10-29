@@ -1,12 +1,12 @@
 import { Router } from 'express';
 
-import authControllers from '../controllers/authController';
+import { authController } from 'core/rootController';
 
 const authRouter = Router();
 
-authRouter.post('/signup', authControllers.signupPost);
-authRouter.post('/login', authControllers.loginPost);
-authRouter.post('/emailConfirm', authControllers.emailConfirmPost);
-authRouter.post('/emailConfirmRequest', authControllers.emailConfirmRequestPost);
+authRouter.post('/signup', authController.signupPost);
+authRouter.post('/login', authController.loginPost);
+authRouter.post('/emailConfirm', authController.emailConfirmPost);
+authRouter.post('/emailConfirmRequest', authController.emailConfirmRequestPost);
 
 export default authRouter;
