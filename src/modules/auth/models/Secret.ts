@@ -1,7 +1,4 @@
 import { Schema, model, Document, Model } from 'mongoose';
-import randomize from 'randomatic';
-
-import { transporter, verificationEmailCreator } from 'common/services/mailService';
 
 interface Secret {
     userID: string;
@@ -10,14 +7,20 @@ interface Secret {
 
 interface SecretDocument extends Secret, Document {}
 
-interface SecretModel extends Model<SecretDocument> {
-    createAndSend(userID: string, email: string): SecretDocument;
-}
+export interface SecretModel extends Model<SecretDocument> {}
 
 const secretSchema = new Schema({
     userID: {
         type: String,
-        required: true,
+        required() {
+            return this.email !== null;
+        },
+    },
+    email: {
+        type: String,
+        required() {
+            return this.userID !== null;
+        },
     },
     code: {
         type: String,
@@ -30,14 +33,14 @@ const secretSchema = new Schema({
     },
 });
 
-secretSchema.statics.createAndSend = async function (email: string, userID: string) {
-    const code = randomize('aA0', 16);
-    const secret = await this.create({ userID, code });
+// secretSchema.statics.createAndSend = async function (email: string, userID: string) {
+//     const code = randomize('aA0', 16);
+//     const secret = await this.create({ userID, code });
 
-    await verificationEmailCreator(email, userID, code);
+//     await mailService.verificationEmailCreator(email, userID, code);
 
-    return secret;
-};
+//     return secret;
+// };
 
 const Secret = model<SecretDocument, SecretModel>('Secret', secretSchema);
 

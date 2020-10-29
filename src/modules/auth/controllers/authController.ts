@@ -1,105 +1,119 @@
-import jwt from 'jsonwebtoken';
+import jsonwebtoken from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import { RequestHandler } from 'express';
+import { Request, Response } from 'express';
 
-import User from '../models/User';
-import Secret from '../models/Secret';
-import Error from '../models/Error';
 import { cookieSettings, jwtSettings } from '../config/authConfig';
 import { alreadyRegistered, wrongCredentials } from '../config/errorMessages';
 
+import Error from '../models/Error';
+import MailService from 'common/services/MailService';
+import { UserModel } from '../models/User';
+import { SecretModel } from '../models/Secret';
+
 dotenv.config();
 
-const signupPost: RequestHandler = async (req, res) => {
-    const { email, password, first_name, last_name } = req.body;
+export default class AuthController {
+    constructor(
+        readonly user: UserModel,
+        readonly secret: SecretModel,
+        readonly mailService: MailService,
+    ) {}
 
-    try {
-        const user = await User.create({ email, password, first_name, last_name, status: undefined });
-        const secret = await Secret.createAndSend(user.email, user._id);
+    public async signupPost(req: Request, res: Response) {
+        const { email, password, first_name, last_name } = req.body;
 
-        res.status(201).end();
-    } catch (err) {
-        const errors = handleErrors(err);
-        res.status(400).json(errors);
+        try {
+            const user = await this.user.create({
+                email,
+                password,
+                first_name,
+                last_name,
+                status: undefined,
+            });
+            // const secret = await this.secret.createAndSend(user.email, user._id);
+
+            res.status(201).end();
+        } catch (err) {
+            const errors = this.handleErrors(err);
+            res.status(400).json(errors);
+        }
     }
-};
 
-const loginPost: RequestHandler = async (req, res) => {
-    const { email, password } = req.body;
+    public async loginPost(req: Request, res: Response) {
+        const { email, password } = req.body;
 
-    try {
-        const user = await User.login(email, password);
-        const token = createToken(user._id);
+        try {
+            const user = await this.user.login(email, password);
+            const token = this.createToken(user._id);
 
-        res.cookie('jwt', token, cookieSettings);
-        res.status(200).json({ userID: user._id });
-    } catch (err) {
-        const errors = handleErrors(err);
-        res.status(400).json(errors);
+            res.cookie('jwt', token, cookieSettings);
+            res.status(200).json({ userID: user._id });
+        } catch (err) {
+            const errors = this.handleErrors(err);
+            res.status(400).json(errors);
+        }
     }
-};
 
-const emailConfirmRequestPost: RequestHandler = async (req, res) => {
-    const { email } = req.body;
+    public async emailConfirmRequestPost(req: Request, res: Response) {
+        const { email } = req.body;
 
-    try {
-        const user = await User.findOne({ email });
-        const secret = await Secret.createAndSend(user.email, user._id);
+        try {
+            const user = await this.user.findOne({ email });
+            // const secret = await this.secret.createAndSend(user.email, user._id);
 
-        res.status(200).end();
-    } catch (err) {
-        const errors = handleErrors(err);
-        res.status(400).json(errors);
+            res.status(200).end();
+        } catch (err) {
+            const errors = this.handleErrors(err);
+            res.status(400).json(errors);
+        }
     }
-};
 
-const emailConfirmPost: RequestHandler = async (req, res) => {
-    const { userID, code } = req.body;
+    public async emailConfirmPost(req: Request, res: Response) {
+        const { userID, code } = req.body;
 
-    try {
-        const secret = await Secret.findOneAndDelete({ code, userID });
-        const user = await User.findByIdAndUpdate(secret.userID, { status: 'confirmed' });
-        const token = createToken(user._id);
+        try {
+            const secret = await this.secret.findOneAndDelete({ code, userID });
+            const user = await this.user.findByIdAndUpdate(secret.userID, { status: 'confirmed' });
+            const token = this.createToken(user._id);
 
-        res.cookie('jwt', token, cookieSettings);
-        res.status(200).json({ userID: user._id });
-    } catch (err) {
-        const errors = handleErrors(err);
-        res.status(400).json(errors);
+            res.cookie('jwt', token, cookieSettings);
+            res.status(200).json({ userID: user._id });
+        } catch (err) {
+            const errors = this.handleErrors(err);
+            res.status(400).json(errors);
+        }
     }
-};
 
-const createToken = (id: string) => jwt.sign({ id }, process.env.JWT_SECRET, jwtSettings);
+    private async createToken(id: string) {
+        jsonwebtoken.sign({ id }, process.env.JWT_SECRET, jwtSettings);
+    }
 
-const handleErrors = (err: Error) => {
-    if (err.code === 11000)
-        return {
-            errors: { email: alreadyRegistered },
-        };
+    private async handleErrors(err: Error) {
+        if (err.code === 11000) {
+            return {
+                errors: { email: alreadyRegistered },
+            };
+        }
 
-    if (err.message === wrongCredentials)
-        return {
-            errors: { email: err.message, password: err.message },
-        };
+        if (err.message === wrongCredentials) {
+            return {
+                errors: { email: err.message, password: err.message },
+            };
+        }
 
-    if (err.message.includes('User validation failed'))
-        return Object.values(err.errors).reduce(
-            (total: { errors? }, { properties: { path, message } }) => {
-                total.errors.hasOwnProperty(path)
-                    ? (total.errors[path] = [total.errors[path], message])
-                    : (total.errors[path] = message);
+        if (err.message.includes('User validation failed')) {
+            return Object.values(err.errors).reduce(
+                (total: { errors? }, { properties: { path, message } }) => {
+                    total.errors.hasOwnProperty(path)
+                        ? (total.errors[path] = [total.errors[path], message])
+                        : (total.errors[path] = message);
 
-                return total;
-            },
-            { errors: {} },
-        );
+                    return total;
+                },
+                { errors: {} },
+            );
+        }
 
-    return err;
-};
-
-export default {
-    signupPost,
-    loginPost,
-    emailConfirmPost,
-    emailConfirmRequestPost,
-};
+        return err;
+    }
+}

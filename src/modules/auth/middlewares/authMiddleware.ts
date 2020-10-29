@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import jsonwebtoken from 'jsonwebtoken';
 import dotenv from 'dotenv';
 
 import { tokenNotProvided } from '../config/errorMessages';
@@ -14,7 +14,7 @@ const requireAuth = (req, res, next) => {
             throw new Error(tokenNotProvided);
         }
 
-        jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
+        jsonwebtoken.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
             if (err) res.status(401).json({ error: err.message });
 
             return decodedToken;
