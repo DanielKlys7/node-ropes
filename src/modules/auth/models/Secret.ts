@@ -1,8 +1,8 @@
 import { Schema, model, Document, Model } from 'mongoose';
 
 interface Secret {
-  userID: string;
-  code: string;
+    userID: string;
+    code: string;
 }
 
 interface SecretDocument extends Secret, Document {}
@@ -10,27 +10,27 @@ interface SecretDocument extends Secret, Document {}
 export interface SecretModel extends Model<SecretDocument> {}
 
 const secretSchema = new Schema({
-  userID: {
-    type: String,
-    required() {
-      return this.email !== null;
+    userID: {
+        type: String,
+        required() {
+            return this.email !== null;
+        },
     },
-  },
-  email: {
-    type: String,
-    required() {
-      return this.userID !== null;
+    email: {
+        type: String,
+        required() {
+            return this.userID !== null;
+        },
     },
-  },
-  code: {
-    type: String,
-    required: true,
-  },
-  dateCreated: {
-    type: Date,
-    default: Date.now(),
-    expires: 600,
-  },
+    code: {
+        type: String,
+        required: true,
+    },
+    dateCreated: {
+        type: Date,
+        default: Date.now(),
+        expires: 600,
+    },
 });
 
 // secretSchema.statics.createAndSend = async function (email: string, userID: string) {
