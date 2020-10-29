@@ -12,12 +12,15 @@ export default class MailService {
         },
     });
 
-    public verificationEmailCreator(email: string, id: string, code: string) {
+    public send(email: string, subject: string, text: string) {
         return this.transporter.sendMail({
-            from: 'jiujiteironoreply@gmail.com',
+            subject,
+            text,
+            from: {
+                name: 'Daniel z Jiujiteiro.',
+                address: 'jiujiteironoreply@gmail.com',
+            },
             to: email,
-            subject: `Activation link for jiujiteiro!`,
-            text: `https://somelink.com/auth/emailVerification/${id}/${code}`,
         });
     }
 }
