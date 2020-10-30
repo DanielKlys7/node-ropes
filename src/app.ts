@@ -4,8 +4,8 @@ import dotenv from 'dotenv';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 
-import requireAuth from './modules/auth/middlewares/authMiddleware';
-import authRouter from './modules/auth/routes/authRoutes';
+import authMiddleware from './modules/auth/middlewares/authMiddleware';
+import authRouter from './modules/auth/routes/authRouter';
 
 dotenv.config();
 const app = express();
@@ -32,4 +32,4 @@ app.use(cookieParser());
 
 app.use('/auth', authRouter);
 
-app.use(requireAuth);
+app.use(authMiddleware);

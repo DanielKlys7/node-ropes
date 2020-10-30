@@ -1,6 +1,7 @@
 import jsonwebtoken from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import { Request, Response } from 'express';
+import randomatic from 'randomatic';
+import { RequestHandler } from 'express';
 
 import { cookieSettings, jwtSettings } from '../config/authConfig';
 import { alreadyRegistered, wrongCredentials } from '../config/errorMessages';
@@ -9,6 +10,8 @@ import Error from '../models/Error';
 import MailService from 'common/services/MailService';
 import { UserModel } from '../models/User';
 import { SecretModel } from '../models/Secret';
+
+import { verificationEmailGenerator } from '../helpers/verificationEmailGenerator';
 
 dotenv.config();
 
@@ -19,8 +22,9 @@ export default class AuthController {
         readonly mailService: MailService,
     ) {}
 
-    public async signupPost(req: Request, res: Response) {
+    public signupPost: RequestHandler = async (req, res) => {
         const { email, password, first_name, last_name } = req.body;
+        const code = randomatic('aA0', 16);
 
         try {
             const user = await this.user.create({
@@ -30,16 +34,19 @@ export default class AuthController {
                 last_name,
                 status: undefined,
             });
-            // const secret = await this.secret.createAndSend(user.email, user._id);
+            const secret = await this.secret.create({ code, userID: user._id });
+
+            const { subject, text } = verificationEmailGenerator(user._id, code);
+            await this.mailService.send(user.email, subject, text);
 
             res.status(201).end();
         } catch (err) {
             const errors = this.handleErrors(err);
             res.status(400).json(errors);
         }
-    }
+    };
 
-    public async loginPost(req: Request, res: Response) {
+    public loginPost: RequestHandler = async (req, res) => {
         const { email, password } = req.body;
 
         try {
@@ -52,23 +59,27 @@ export default class AuthController {
             const errors = this.handleErrors(err);
             res.status(400).json(errors);
         }
-    }
+    };
 
-    public async emailConfirmRequestPost(req: Request, res: Response) {
+    public emailConfirmRequestPost: RequestHandler = async (req, res) => {
         const { email } = req.body;
+        const code = randomatic('aA0', 16);
 
         try {
             const user = await this.user.findOne({ email });
-            // const secret = await this.secret.createAndSend(user.email, user._id);
+            const secret = await this.secret.create({ userID: user._id, code });
+
+            const { subject, text } = verificationEmailGenerator(user._id, code);
+            await this.mailService.send(user.email, subject, text);
 
             res.status(200).end();
         } catch (err) {
             const errors = this.handleErrors(err);
             res.status(400).json(errors);
         }
-    }
+    };
 
-    public async emailConfirmPost(req: Request, res: Response) {
+    public emailConfirmPost: RequestHandler = async (req, res) => {
         const { userID, code } = req.body;
 
         try {
@@ -82,13 +93,13 @@ export default class AuthController {
             const errors = this.handleErrors(err);
             res.status(400).json(errors);
         }
-    }
+    };
 
-    private async createToken(id: string) {
+    private createToken = async (id: string) => {
         jsonwebtoken.sign({ id }, process.env.JWT_SECRET, jwtSettings);
-    }
+    };
 
-    private async handleErrors(err: Error) {
+    private handleErrors = async (err: Error) => {
         if (err.code === 11000) {
             return {
                 errors: { email: alreadyRegistered },
@@ -115,5 +126,5 @@ export default class AuthController {
         }
 
         return err;
-    }
+    };
 }
