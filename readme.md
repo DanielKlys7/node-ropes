@@ -1,11 +1,12 @@
-## Basics of node development
+## Jiujiteiro backend
 
 # prequisites
 
 1. node.js
+2. docker
+3. docker-compose
 
 # how to run
 
-1. npm install in root
-2. apply your envs
-3. npm run start
+1. apply your envs to `.env` created on `.env.template`
+2. docker-compose up --build
