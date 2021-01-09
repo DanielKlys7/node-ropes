@@ -1,4 +1,4 @@
-import AuthController from 'modules/auth/controllers/AuthController';
+import AuthController from 'modules/auth/controllers/authController';
 import User from 'modules/auth/models/User';
 import Secret from 'modules/auth/models/Secret';
 import { mailService } from 'core/rootService';

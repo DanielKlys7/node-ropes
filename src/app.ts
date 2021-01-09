@@ -10,7 +10,7 @@ import authRouter from './modules/auth/routes/authRouter';
 dotenv.config();
 const app = express();
 
-const mongoDBConnectionURI = `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@jiujiteiro.euwtp.mongodb.net/${process.env.MONGODB_DB_NAME}?retryWrites=true&w=majority`;
+const mongoDBConnectionURI = 'mongodb://mongo:27017/Jiujiteiro';
 
 mongoose.connect(mongoDBConnectionURI, {
     useNewUrlParser: true,
