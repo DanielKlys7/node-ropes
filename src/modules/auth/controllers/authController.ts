@@ -7,7 +7,7 @@ import { cookieSettings, jwtSettings } from '../config/authConfig';
 import { alreadyRegistered, wrongCredentials } from '../config/errorMessages';
 
 import Error from '../models/Error';
-import MailService from 'common/services/MailService';
+import MailService from 'common/services/mailService';
 import { UserModel } from '../models/User';
 import { SecretModel } from '../models/Secret';
 
@@ -34,9 +34,11 @@ export default class AuthController {
                 last_name,
                 status: undefined,
             });
-            const secret = await this.secret.create({ code, userID: user._id });
+
+            await this.secret.create({ code, userID: user._id });
 
             const { subject, text } = verificationEmailGenerator(user._id, code);
+
             await this.mailService.send(user.email, subject, text);
 
             res.status(201).end();
