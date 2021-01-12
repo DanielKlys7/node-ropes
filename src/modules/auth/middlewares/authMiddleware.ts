@@ -1,3 +1,4 @@
+import { RequestHandler } from 'express';
 import jsonwebtoken from 'jsonwebtoken';
 import dotenv from 'dotenv';
 
@@ -5,16 +6,14 @@ import { tokenNotProvided } from '../config/errorMessages';
 
 dotenv.config();
 
-const requireAuth = (req, res, next) => {
-    const token = req.cookies.jwt;
-
+const requireAuth: RequestHandler = ({ cookies: { jwt } }, res, next) => {
     try {
-        if (!token) {
+        if (!jwt) {
             res.status(401).json({ errors: { token: tokenNotProvided } });
             throw new Error(tokenNotProvided);
         }
 
-        jsonwebtoken.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
+        jsonwebtoken.verify(jwt, process.env.JWT_SECRET, (err, decodedToken) => {
             if (err) res.status(401).json({ error: err.message });
 
             return decodedToken;
