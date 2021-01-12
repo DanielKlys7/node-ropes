@@ -89,25 +89,25 @@ export const authRouter: AuthRouter = (user, secret, mailService) => {
         }
     });
 
-    const createToken = async (id: string) => {
-        jsonwebtoken.sign({ id }, process.env.JWT_SECRET, jwtSettings);
-    };
-
-    const handleErrors = (err: Error) => {
-        if (err.code === 11000) return { email: alreadyRegistered };
-
-        if (err.message === wrongCredentials) return { email: err.message, password: err.message };
-
-        if (err.message.includes('User validation failed')) {
-            return Object.keys(err.errors).reduce((total, current) => {
-                total[current] = err.errors[current].properties.message;
-
-                return total;
-            }, {});
-        }
-
-        return err;
-    };
-
     return baseRouter;
+};
+
+const createToken = async (id: string) => {
+    jsonwebtoken.sign({ id }, process.env.JWT_SECRET, jwtSettings);
+};
+
+const handleErrors = (err: Error) => {
+    if (err.code === 11000) return { email: alreadyRegistered };
+
+    if (err.message === wrongCredentials) return { email: err.message, password: err.message };
+
+    if (err.message.includes('User validation failed')) {
+        return Object.keys(err.errors).reduce((total, current) => {
+            total[current] = err.errors[current].properties.message;
+
+            return total;
+        }, {});
+    }
+
+    return err;
 };
