@@ -26,5 +26,11 @@ services:
         restart: always
         ports:
             - 5000:5000
+        volumes:
+            - ./src:/app/src
         depends_on:
             - mongo
+
+volumes:
+    mongo:
+    nodemodules:
