@@ -5,7 +5,11 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 
 import authMiddleware from './modules/auth/middlewares/authMiddleware';
-import authRouter from './modules/auth/routes/authRouter';
+import { authRouter } from './modules/auth/routes/authRouter';
+
+import User from 'modules/auth/models/User';
+import Secret from 'modules/auth/models/Secret';
+import { mailService } from 'core/rootService';
 
 dotenv.config();
 const app = express();
@@ -30,6 +34,6 @@ app.use(express.json());
 app.use(morgan('tiny'));
 app.use(cookieParser());
 
-app.use('/auth', authRouter);
+app.use('/auth', authRouter(User, Secret, mailService));
 
 app.use(authMiddleware);
